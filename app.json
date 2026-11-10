@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "Repton-Group",
+    "slug": "repton-group",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/repton-app-icon.png",
+    "scheme": ["reptongroup", "shop.82257871092.reptongroup"],
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "icon": "./assets/images/repton-app-icon.png"
+    },
+    "android": {
+      "package": "ng.reptongroup.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#D71920",
+        "foregroundImage": "./assets/images/repton-android-foreground.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/repton-favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/images/repton-splash.png",
+          "imageWidth": 240
+        }
+      ],
+      "expo-secure-store",
+      "expo-mail-composer"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2150469a-4f2e-493d-95e8-ee47b3c3673f"
+      },
+      "customerAccountClientId": "6dea421f-263b-47da-aac4-96c232ee1cda"
+    }
+  }
+}
