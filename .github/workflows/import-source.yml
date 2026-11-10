@@ -1,0 +1,41 @@
+name: Import portfolio source
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/import-source.yml'
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify and expand source snapshots
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, pathlib, zipfile
+          root = pathlib.Path.cwd().resolve()
+          manifest = json.loads(pathlib.Path('source-manifest.json').read_text(encoding='utf-8-sig'))
+          for item in manifest['archives']:
+              archive = pathlib.Path(item['file'])
+              if not archive.exists():
+                  continue
+              assert hashlib.sha256(archive.read_bytes()).hexdigest() == item['sha256'], 'Archive checksum mismatch'
+              with zipfile.ZipFile(archive) as bundle:
+                  for entry in bundle.infolist():
+                      target = (root / entry.filename).resolve()
+                      assert target.is_relative_to(root) and '.git' not in pathlib.Path(entry.filename).parts
+                      assert '.github' not in pathlib.Path(entry.filename).parts
+                  bundle.extractall(root)
+          PY
+      - name: Publish browsable project files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm --ignore-unmatch source-part-*.zip
+          git add --all
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Expand verified portfolio source into browsable project files'
+          git push
