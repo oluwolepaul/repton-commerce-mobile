@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repton Commerce · Catalog demo</title>
+<style>
+:root{color-scheme:light;font-family:Inter,system-ui,sans-serif;background:#f2f4f1;color:#172b21}*{box-sizing:border-box}body{margin:0}main{max-width:860px;margin:auto;padding:2.5rem 1rem}header{padding:1.5rem 0;border-bottom:1px solid #cad5ce}h1{margin:0;font-size:clamp(2rem,6vw,3rem)}p{line-height:1.5}.layout{display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin-top:1.5rem}section{background:white;border:1px solid #cad5ce;border-radius:12px;padding:1rem}ul{list-style:none;padding:0}li{padding:.75rem 0;border-bottom:1px solid #e3ebe6}li p{margin:.4rem 0}button,select{font:inherit;padding:.55rem .75rem;border:1px solid #305840;border-radius:6px}button{cursor:pointer;background:#23563a;color:white}button:hover{background:#163c27}button:focus-visible,select:focus-visible{outline:3px solid #b76b12;outline-offset:3px}a{color:#23563a}@media(max-width:640px){.layout{grid-template-columns:1fr}}
+</style>
+<main>
+<header><h1>Repton Commerce demo</h1><p>Browse sample construction materials and build a cart. Prices and quantities are illustrative.</p><a href="https://github.com/oluwolepaul/repton-commerce-mobile">View the mobile app source</a></header>
+<div class="layout">
+<section><h2>Catalog</h2><label for="category">Category</label> <select id="category"><option>All</option><option>Cement</option><option>Steel</option><option>Binding wire</option></select><ul id="products"></ul></section>
+<section><h2>Cart</h2><p id="status" role="status"></p><ul id="cart"></ul><p><strong id="total"></strong></p><button type="button" id="clear">Clear cart</button></section>
+</div>
+</main>
+<script>
+const catalog = [
+  { id: 'cement', name: 'Portland cement', category: 'Cement', unit: 'bag', price: 9700 },
+  { id: 'steel', name: '12 mm reinforcement bar', category: 'Steel', unit: 'bar', price: 13600 },
+  { id: 'wire', name: 'Binding wire coil', category: 'Binding wire', unit: 'coil', price: 7800 },
+];
+const quantities = new Map();
+const currency = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 });
+const category = document.querySelector('#category');
+const products = document.querySelector('#products');
+const cart = document.querySelector('#cart');
+const status = document.querySelector('#status');
+const total = document.querySelector('#total');
+const clear = document.querySelector('#clear');
+
+function action(label, handleClick) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = label;
+  button.addEventListener('click', handleClick);
+  return button;
+}
+
+function renderCatalog() {
+  products.replaceChildren();
+  for (const item of catalog) {
+    if (category.value !== 'All' && category.value !== item.category) continue;
+    const row = document.createElement('li');
+    const name = document.createElement('strong');
+    name.textContent = item.name;
+    const price = document.createElement('p');
+    price.textContent = currency.format(item.price) + ' per ' + item.unit;
+    row.append(name, price, action('Add ' + item.name, () => {
+      quantities.set(item.id, (quantities.get(item.id) ?? 0) + 1);
+      renderCart();
+    }));
+    products.append(row);
+  }
+}
+
+function renderCart() {
+  let subtotal = 0;
+  let units = 0;
+  cart.replaceChildren();
+  for (const item of catalog) {
+    const quantity = quantities.get(item.id) ?? 0;
+    if (!quantity) continue;
+    subtotal += item.price * quantity;
+    units += quantity;
+    const row = document.createElement('li');
+    const line = document.createElement('p');
+    line.textContent = item.name + ' × ' + quantity + ' · ' + currency.format(item.price * quantity);
+    row.append(line, action('Remove one ' + item.name, () => {
+      quantities.set(item.id, quantity - 1);
+      renderCart();
+      clear.focus();
+    }));
+    cart.append(row);
+  }
+  status.textContent = units ? units + ' item' + (units === 1 ? '' : 's') + ' in cart' : 'Your cart is empty.';
+  total.textContent = 'Subtotal ' + currency.format(subtotal);
+}
+
+category.addEventListener('change', renderCatalog);
+clear.addEventListener('click', () => {
+  quantities.clear();
+  renderCart();
+});
+renderCatalog();
+renderCart();
+</script>
+</html>
